@@ -12,6 +12,10 @@ import androidx.core.app.NotificationCompat;
 import androidx.media3.common.MediaItem;
 import androidx.media3.exoplayer.ExoPlayer;
 
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.Locale;
+
 public class RadioService extends Service {
     private ExoPlayer exoPlayer;
     private CountDownTimer countDownTimer;
@@ -22,6 +26,21 @@ public class RadioService extends Service {
     public static final String ACTION_TOGGLE = "ACTION_TOGGLE";
     public static final String TIMER_UPDATE = "TIMER_UPDATE";
 
+    private void saveProgressToDatabase(long currentMillis) {
+        String today = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(new Date());
+
+        // Veritabanı işlemleri ana thread'i kilitlememek için arka planda yapılmalıdır
+
+        new Thread(() -> {
+            AppDatabase db = AppDatabase.getInstance(getApplicationContext());
+            ListeningLog existingLog = db.listeningDao().getLogByDate(today);
+
+            long totalMillisToday = (existingLog != null) ? existingLog.durationMillis + currentMillis : currentMillis;
+            boolean goalReached = totalMillisToday >= 14400000; // 4 saat hedefi
+
+            db.listeningDao().insertOrUpdate(new ListeningLog(today, totalMillisToday, goalReached));
+        }).start();
+    }
     @Override
     public void onCreate() {
         super.onCreate();

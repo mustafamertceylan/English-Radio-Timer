@@ -18,6 +18,8 @@ import androidx.media3.exoplayer.ExoPlayer;
 
 public class MainActivity extends AppCompatActivity {
 
+    private ImageView playIcon;      // Üstteki yeşil kartın ikonu
+    private ImageView playIconList;  // Alttaki istasyon listesinin ikonu
     private TextView totalDailyTime, bbcTimer;
     private ProgressBar goalProgressBar;
     private CardView dateCard;
@@ -36,40 +38,37 @@ public class MainActivity extends AppCompatActivity {
         @Override
         public void onReceive(Context context, Intent intent) {
             if (intent.getAction().equals(RadioService.TIMER_UPDATE)) {
-                // Servisten milisaniye cinsinden süreyi alalım
                 long millisPlayed = intent.getLongExtra("millis_played", 0);
 
-                // Formatla: "2s 56dk" formatına çevirelim
+                // Yeni format: "0s 45d 12sn"
                 String formattedTime = formatToShortTime(millisPlayed);
 
-                // Arayüzü güncelle
+                // Arayüz bileşenlerini güncelle
                 totalDailyTime.setText(formattedTime + " / 4 saat");
                 bbcTimer.setText(formattedTime);
 
-                // Progress Bar'ı güncelle (4 saat = 14.400.000 ms)
+                // İlerleme çubuğunu (ProgressBar) güncelle (Hedef: 4 saat = 14.400.000 ms)
                 int progress = (int) ((millisPlayed * 100) / 14400000);
                 goalProgressBar.setProgress(progress);
-                boolean isPlaying = intent.getBooleanExtra("is_playing", false);
-                if (isPlaying) {
-                    playIcon.setImageResource(android.R.drawable.ic_media_pause); // Durdur ikonuna dön
-                } else {
-                    playIcon.setImageResource(android.R.drawable.ic_media_play);  // Oynat ikonuna dön
-                }
             }
         }
     };
 
     // Yardımcı metod: Milisaniyeyi "X s Y dk" formatına çevirir
     private String formatToShortTime(long millis) {
-        int hours = (int) (millis / 3600000);
-        int minutes = (int) (millis % 3600000) / 60000;
-        return hours + "s " + minutes + "dk";
+        long hours = millis / 3600000;
+        long minutes = (millis % 3600000) / 60000;
+        long seconds = (millis % 60000) / 1000; // Milisaniyeden saniyeyi hesaplar
+
+        return hours + "s " + minutes + "d " + seconds + "sn";
     }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        playIcon = findViewById(R.id.playIcon);
+        playIconList = findViewById(R.id.playIconList); // XML'de bu ID'yi verdiğinden emin ol
 
         // Yeni ID'leri burada bağlıyoruz
         totalDailyTime = findViewById(R.id.totalDailyTime);

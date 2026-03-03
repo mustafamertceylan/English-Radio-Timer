@@ -42,6 +42,11 @@
                     android:layout_alignParentEnd="true"
                     android:src="@android:drawable/ic_media_play"
                     app:tint="#FFFFFF" />
+                <ImageView
+                    android:id="@+id/playIconList"
+                    android:layout_width="48dp"
+                    android:layout_height="48dp"
+                    android:src="@android:drawable/ic_media_play" />
             </RelativeLayout>
 
             <TextView
