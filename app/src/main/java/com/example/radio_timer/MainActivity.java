@@ -7,14 +7,20 @@ import android.content.IntentFilter;
 import android.os.Bundle;
 import android.os.CountDownTimer;
 import android.widget.Button;
+import android.widget.ImageView;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.cardview.widget.CardView;
 import androidx.media3.common.MediaItem;
 import androidx.media3.common.Player;
 import androidx.media3.exoplayer.ExoPlayer;
 
 public class MainActivity extends AppCompatActivity {
 
+    private TextView totalDailyTime, bbcTimer;
+    private ProgressBar goalProgressBar;
+    private CardView dateCard;
     private ExoPlayer player;
     private TextView timerTextView;
     private Button startStopButton;
@@ -30,40 +36,67 @@ public class MainActivity extends AppCompatActivity {
         @Override
         public void onReceive(Context context, Intent intent) {
             if (intent.getAction().equals(RadioService.TIMER_UPDATE)) {
-                String timeLeft = intent.getStringExtra("time_left");
-                timerTextView.setText(timeLeft); // Ekrandaki yazıyı güncelle
+                // Servisten milisaniye cinsinden süreyi alalım
+                long millisPlayed = intent.getLongExtra("millis_played", 0);
+
+                // Formatla: "2s 56dk" formatına çevirelim
+                String formattedTime = formatToShortTime(millisPlayed);
+
+                // Arayüzü güncelle
+                totalDailyTime.setText(formattedTime + " / 4 saat");
+                bbcTimer.setText(formattedTime);
+
+                // Progress Bar'ı güncelle (4 saat = 14.400.000 ms)
+                int progress = (int) ((millisPlayed * 100) / 14400000);
+                goalProgressBar.setProgress(progress);
+                boolean isPlaying = intent.getBooleanExtra("is_playing", false);
+                if (isPlaying) {
+                    playIcon.setImageResource(android.R.drawable.ic_media_pause); // Durdur ikonuna dön
+                } else {
+                    playIcon.setImageResource(android.R.drawable.ic_media_play);  // Oynat ikonuna dön
+                }
             }
         }
     };
 
+    // Yardımcı metod: Milisaniyeyi "X s Y dk" formatına çevirir
+    private String formatToShortTime(long millis) {
+        int hours = (int) (millis / 3600000);
+        int minutes = (int) (millis % 3600000) / 60000;
+        return hours + "s " + minutes + "dk";
+    }
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
-
         setContentView(R.layout.activity_main);
-        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.TIRAMISU) {
-            if (checkSelfPermission(android.Manifest.permission.POST_NOTIFICATIONS)
-                    != android.content.pm.PackageManager.PERMISSION_GRANTED) {
-                requestPermissions(new String[]{android.Manifest.permission.POST_NOTIFICATIONS}, 101);
-            }
-        }
 
+        // Yeni ID'leri burada bağlıyoruz
+        totalDailyTime = findViewById(R.id.totalDailyTime);
+        bbcTimer = findViewById(R.id.bbcTimer);
+        goalProgressBar = findViewById(R.id.goalProgressBar);
+        dateCard = findViewById(R.id.dateCard);
 
-
-        timerTextView = findViewById(R.id.timerTextView);
-        startStopButton = findViewById(R.id.startStopButton);
-
-
-
-        startStopButton.setOnClickListener(v -> {
-            Intent serviceIntent = new Intent(this, RadioService.class);
-            serviceIntent.setAction(RadioService.ACTION_TOGGLE); // Durdurma değil, değiştirme komutu gönder
-            startForegroundService(serviceIntent);
+        // Takvime geçiş butonu (CardView olarak)
+        dateCard.setOnClickListener(v -> {
+            Intent intent = new Intent(MainActivity.this, CalendarActivity.class);
+            startActivity(intent);
         });
-        registerReceiver(timerReceiver, new IntentFilter(RadioService.TIMER_UPDATE), Context.RECEIVER_EXPORTED);
-    }
+        // MainActivity.java içindeki onCreate metoduna ekle:
+        CardView bbcCard = findViewById(R.id.bbcCard);
 
+        bbcCard.setOnClickListener(v -> {
+            Intent serviceIntent = new Intent(this, RadioService.class);
+            // Servise ne yapacağını söyleyen "Action"
+            serviceIntent.setAction("ACTION_TOGGLE");
+
+            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
+                startForegroundService(serviceIntent);
+            } else {
+                startService(serviceIntent);
+            }
+        });
+    }
     private void initializePlayer() {
         player = new ExoPlayer.Builder(this).build();
         MediaItem mediaItem = MediaItem.fromUri(RADIO_URL);

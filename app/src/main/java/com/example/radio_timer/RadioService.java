@@ -36,15 +36,12 @@ public class RadioService extends Service {
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
-        if (intent != null && ACTION_TOGGLE.equals(intent.getAction())) {
+        if (intent != null && "ACTION_TOGGLE".equals(intent.getAction())) {
             if (isPlaying) {
                 pauseRadio();
             } else {
                 playRadio();
             }
-        } else {
-            // Uygulama içinden ilk defa başlatıldığında
-            playRadio();
         }
         return START_STICKY;
     }
@@ -55,6 +52,7 @@ public class RadioService extends Service {
             isPlaying = true;
             startTimer();
             updateNotification();
+            sendStateToActivity(true); // Durumu gönder
         }
     }
 
@@ -62,11 +60,16 @@ public class RadioService extends Service {
         if (isPlaying) {
             exoPlayer.pause();
             isPlaying = false;
-            if (countDownTimer != null) {
-                countDownTimer.cancel(); // Önceki timer'ı durdur
-            }
+            if (countDownTimer != null) countDownTimer.cancel();
             updateNotification();
+            sendStateToActivity(false); // Durumu gönder
         }
+    }
+
+    private void sendStateToActivity(boolean isPlaying) {
+        Intent intent = new Intent(TIMER_UPDATE);
+        intent.putExtra("is_playing", isPlaying);
+        sendBroadcast(intent);
     }
 
     private void startTimer() {

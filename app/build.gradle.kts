@@ -32,6 +32,16 @@ android {
 }
 
 dependencies {
+    implementation("com.github.prolificinteractive:material-calendarview:2.0.1")
+    val roomVersion = "2.6.1"
+    implementation("androidx.room:room-runtime:$roomVersion")
+    annotationProcessor("androidx.room:room-compiler:$roomVersion")
+
+    // Eğer Kotlin kullanmıyorsan ksp yerine annotationProcessor yeterli olacaktır.
+}
+dependencies {
+
+
 
     implementation("androidx.media3:media3-exoplayer:1.2.1")
     implementation ("androidx.media3:media3-ui:1.2.1")
