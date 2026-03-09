@@ -92,6 +92,7 @@
         app:cardElevation="2dp">
 
         <RelativeLayout
+            android:background="#FFFFFF"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:padding="16dp">
@@ -140,6 +141,7 @@
         android:focusable="true">
 
         <RelativeLayout
+            android:background="#FFFFFF"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:padding="16dp">
