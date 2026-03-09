@@ -20,4 +20,5 @@ public interface ListeningDao {
 
     @Query("SELECT * FROM listening_logs ORDER BY date DESC")
     List<ListeningLog> getAllLogs();
+
 }
