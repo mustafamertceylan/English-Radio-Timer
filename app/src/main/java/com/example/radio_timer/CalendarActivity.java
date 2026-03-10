@@ -64,17 +64,15 @@ public class CalendarActivity extends AppCompatActivity {
     }
 
     private void loadCalendarAndStats() {
-        // 9 Mart 2026 itibariyle "2026-03" formatını alıyoruz
         String currentMonth = new SimpleDateFormat("yyyy-MM", Locale.getDefault()).format(new Date());
+        PreferenceHelper prefs = new PreferenceHelper(this);
+        long dailyGoal = prefs.getDailyGoal();
 
         new Thread(() -> {
             AppDatabase db = AppDatabase.getInstance(this);
-
-            // Veritabanı sorguları (Senin DAO'daki metodun kullanılıyor)
             List<ListeningLog> allLogs = db.listeningDao().getAllLogs();
             long monthlyTotalMillis = db.listeningDao().getTotalTimeForMonth(currentMonth);
 
-            // Takvim günlerini işleme mantığı (Burayı zaten doğru yapmıştın)
             List<CalendarDay> reachedDays = new ArrayList<>();
             List<CalendarDay> missedDays = new ArrayList<>();
 
@@ -86,7 +84,7 @@ public class CalendarActivity extends AppCompatActivity {
                         Integer.parseInt(parts[2])
                 );
 
-                if (log.durationMillis >= 14400000) { // 4 saat hedefi
+                if (log.durationMillis >= dailyGoal) { // Burada dailyGoal kullanıyoruz
                     reachedDays.add(day);
                 } else {
                     missedDays.add(day);
@@ -94,14 +92,10 @@ public class CalendarActivity extends AppCompatActivity {
             }
 
             runOnUiThread(() -> {
-                // 3. KRİTİK ADIM: Veriyi burada ekrana basıyoruz
                 if (monthlyTotalText != null) {
                     monthlyTotalText.setText(formatToShortTime(monthlyTotalMillis));
                 }
-
                 calendarView.removeDecorators();
-
-                // Dolu daire dekoratörlerini ekliyoruz
                 calendarView.addDecorator(new GoalReachedDecorator(
                         ContextCompat.getDrawable(this, R.drawable.circle_filled_green), reachedDays));
                 calendarView.addDecorator(new GoalReachedDecorator(

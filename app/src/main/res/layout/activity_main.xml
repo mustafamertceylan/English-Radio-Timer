@@ -6,6 +6,35 @@
     android:orientation="vertical"
     android:background="#F5F7FA"
     android:padding="16dp">
+    <!-- Başlık ve Ayarlar İkonu -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:layout_marginBottom="16dp">
+
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="Radyo Zamanlayıcı"
+            android:textSize="24sp"
+            android:textStyle="bold"
+            android:textColor="#2D3436" />
+
+        <ImageView
+            android:id="@+id/settingsIcon"
+            android:layout_width="32dp"
+            android:layout_height="32dp"
+            android:src="@android:drawable/ic_menu_manage"
+            android:padding="4dp"
+            android:clickable="true"
+            android:focusable="true"
+            android:foreground="?android:attr/selectableItemBackgroundBorderless"
+            android:tint="#00B894" />
+
+    </LinearLayout>
 
     <androidx.cardview.widget.CardView
         android:id="@+id/bbcCard"
@@ -54,6 +83,7 @@
                 android:textSize="32sp"
                 android:layout_marginTop="16dp" />
 
+
             <ProgressBar
                 android:id="@+id/goalProgressBar"
                 style="?android:attr/progressBarStyleHorizontal"
@@ -63,6 +93,17 @@
                 android:progress="0"
                 android:progressDrawable="@drawable/custom_progress_bar" />
 
+            <!-- YENİ: Yüzde gösterimi -->
+            <TextView
+                android:id="@+id/percentageText"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="%0 tamamlandı"
+                android:textColor="#FFFFFF"
+                android:textSize="14sp"
+                android:textStyle="bold"
+                android:gravity="center"
+                android:layout_marginTop="8dp"/>
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
