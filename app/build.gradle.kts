@@ -47,6 +47,8 @@ dependencies {
     implementation ("androidx.media3:media3-ui:1.2.1")
     implementation ("androidx.media3:media3-common:1.2.1")
 
+    implementation ("androidx.recyclerview:recyclerview:1.3.2")
+
     implementation(libs.appcompat)
     implementation(libs.material)
     implementation(libs.activity)

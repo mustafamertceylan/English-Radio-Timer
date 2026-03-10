@@ -6,76 +6,49 @@ import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.app.Service;
 import android.content.Intent;
-import android.os.Build;
+import android.net.Uri;
 import android.os.CountDownTimer;
 import android.os.IBinder;
 import android.util.Log;
+
 import androidx.core.app.NotificationCompat;
 import androidx.media3.common.MediaItem;
 import androidx.media3.common.Player;
-import androidx.media3.common.PlaybackException;
+import androidx.media3.datasource.DefaultHttpDataSource;
 import androidx.media3.exoplayer.DefaultLoadControl;
 import androidx.media3.exoplayer.ExoPlayer;
+import androidx.media3.exoplayer.source.MediaSource;
+import androidx.media3.exoplayer.source.ProgressiveMediaSource;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Locale;
 
-@androidx.media3.common.util.UnstableApi
 public class RadioService extends Service {
-    private static final String TAG = "RadioService";
     private ExoPlayer exoPlayer;
     private CountDownTimer countDownTimer;
-    private long timePlayedToday = 0;
+    private long timePlayedToday = 0; // Toplam dinlenen süre (Milisaniye)
     private boolean isPlaying = false;
     private boolean isPlayerReady = false;
     private boolean pendingPlay = false;
+
     private static final String CHANNEL_ID = "RadioChannel";
     public static final String ACTION_TOGGLE = "ACTION_TOGGLE";
+    public static final String ACTION_PLAY_STATION = "ACTION_PLAY_STATION";
     public static final String TIMER_UPDATE = "TIMER_UPDATE";
+
+    private String currentStationUrl = "https://stream.live.vc.bbcmedia.co.uk/bbc_world_service";
+    private String currentStationName = "BBC World Service";
 
     @Override
     public void onCreate() {
         super.onCreate();
         createNotificationChannel();
-        initializePlayer();
+        setupPlayer();
         loadInitialProgress();
-        // Servis başlar başlamaz ön plan bildirimi gönder
-        Intent toggleIntent = new Intent(this, RadioService.class);
-        toggleIntent.setAction(ACTION_TOGGLE);
-        PendingIntent togglePendingIntent = PendingIntent.getService(this, 0, toggleIntent, PendingIntent.FLAG_IMMUTABLE);
-
-        Notification notification = new NotificationCompat.Builder(this, CHANNEL_ID)
-                .setContentTitle("BBC World Service")
-                .setContentText("Radyo hazırlanıyor...")
-                .setSmallIcon(android.R.drawable.ic_media_play)
-                .setOngoing(true)
-                .addAction(android.R.drawable.ic_media_play, "Başlat", togglePendingIntent)
-                .build();
-
-        startForeground(1, notification);
-        exoPlayer.addListener(new Player.Listener() {
-            @Override
-            public void onPlaybackStateChanged(int playbackState) {
-                if (playbackState == Player.STATE_READY) {
-                    isPlayerReady = true;
-                    if (pendingPlay) {
-                        playRadio();
-                        pendingPlay = false;
-                    }
-                }
-            }
-
-            @Override
-            public void onPlayerError(PlaybackException error) {
-                // Hata durumunda bildirimi güncelle veya kullanıcıya göster
-                Log.e("RadioService", "Player hatası: " + error.getMessage());
-                // İsterseniz bir bildirimle kullanıcıyı bilgilendirebilirsiniz
-            }
-        });
     }
 
-    private void initializePlayer() {
+    private void setupPlayer() {
         DefaultLoadControl loadControl = new DefaultLoadControl.Builder()
                 .setBufferDurationsMs(30000, 60000, 1500, 3000)
                 .build();
@@ -84,15 +57,10 @@ public class RadioService extends Service {
                 .setLoadControl(loadControl)
                 .build();
 
-        String url = "https://stream.live.vc.bbcmedia.co.uk/bbc_world_service";
-        exoPlayer.setMediaItem(MediaItem.fromUri(url));
-
-        // Hata dinleyicisi
         exoPlayer.addListener(new Player.Listener() {
             @Override
             public void onPlaybackStateChanged(int playbackState) {
                 if (playbackState == Player.STATE_READY) {
-                    Log.d(TAG, "Player hazır");
                     isPlayerReady = true;
                     if (pendingPlay) {
                         playRadio();
@@ -100,14 +68,22 @@ public class RadioService extends Service {
                     }
                 }
             }
-
-            @Override
-            public void onPlayerError(PlaybackException error) {
-                Log.e(TAG, "Player hatası: " + error.getMessage());
-                // Hata durumunda kullanıcıyı bilgilendirebilirsiniz
-            }
         });
 
+        prepareMedia(currentStationUrl);
+    }
+
+    private void prepareMedia(String url) {
+        // User-Agent ekleyerek DataSource Factory oluştur
+        String userAgent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Safari/537.36";
+        DefaultHttpDataSource.Factory dataSourceFactory = new DefaultHttpDataSource.Factory()
+                .setUserAgent(userAgent)
+                .setAllowCrossProtocolRedirects(true);
+
+        MediaSource mediaSource = new ProgressiveMediaSource.Factory(dataSourceFactory)
+                .createMediaSource(MediaItem.fromUri(Uri.parse(url)));
+
+        exoPlayer.setMediaSource(mediaSource);
         exoPlayer.prepare();
     }
 
@@ -124,11 +100,29 @@ public class RadioService extends Service {
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
-        if (intent != null && ACTION_TOGGLE.equals(intent.getAction())) {
-            if (isPlaying) {
-                pauseRadio();
-            } else {
-                playRadio();
+        if (intent != null) {
+            String action = intent.getAction();
+            if (ACTION_PLAY_STATION.equals(action)) {
+                String url = intent.getStringExtra("station_url");
+                String name = intent.getStringExtra("station_name");
+                if (url != null && name != null) {
+                    if (url.equals(currentStationUrl)) {
+                        // Aynı istasyon: toggle yap
+                        if (isPlaying) pauseRadio(); else playRadio();
+                    } else {
+                        // Yeni istasyon
+                        currentStationUrl = url;
+                        currentStationName = name;
+                        if (isPlaying) {
+                            exoPlayer.stop();
+                            isPlaying = false;
+                        }
+                        prepareMedia(url);
+                        playRadio();
+                    }
+                }
+            } else if (ACTION_TOGGLE.equals(action)) {
+                if (isPlaying) pauseRadio(); else playRadio();
             }
         }
         return START_STICKY;
@@ -138,6 +132,7 @@ public class RadioService extends Service {
         if (!isPlaying) {
             if (!isPlayerReady) {
                 pendingPlay = true;
+                Log.d("RadioService", "Player hazır değil, bekleniyor...");
                 return;
             }
             exoPlayer.play();
@@ -149,34 +144,39 @@ public class RadioService extends Service {
     }
 
     private void pauseRadio() {
-        if (!isPlaying) return;
-        exoPlayer.pause();
-        isPlaying = false;
-        if (countDownTimer != null) countDownTimer.cancel();
-        saveProgressToDatabase();
-        updateNotification();
-        sendStateToActivity();
+        if (isPlaying) {
+            exoPlayer.pause();
+            isPlaying = false;
+            if (countDownTimer != null) countDownTimer.cancel();
+            saveProgressToDatabase();
+            updateNotification();
+            sendStateToActivity();
+        }
     }
 
     private void startTimer() {
         if (countDownTimer != null) countDownTimer.cancel();
+
         countDownTimer = new CountDownTimer(Long.MAX_VALUE, 1000) {
             @Override
             public void onTick(long millisUntilFinished) {
-                if (exoPlayer != null && exoPlayer.getPlaybackState() == Player.STATE_READY && exoPlayer.getPlayWhenReady()) {
+                if (exoPlayer != null &&
+                        exoPlayer.getPlaybackState() == Player.STATE_READY &&
+                        exoPlayer.getPlayWhenReady()) {
+
                     timePlayedToday += 1000;
+
                     if ((timePlayedToday / 1000) % 60 == 0) {
                         saveProgressToDatabase();
                     }
                 }
+
                 updateNotification();
                 sendStateToActivity();
             }
 
             @Override
-            public void onFinish() {
-                // Sonsuz timer olduğu için asla gelmez
-            }
+            public void onFinish() { isPlaying = false; }
         }.start();
     }
 
@@ -192,7 +192,7 @@ public class RadioService extends Service {
         int buttonIcon = isPlaying ? android.R.drawable.ic_media_pause : android.R.drawable.ic_media_play;
 
         Notification notification = new NotificationCompat.Builder(this, CHANNEL_ID)
-                .setContentTitle("BBC World Service")
+                .setContentTitle(currentStationName)
                 .setContentText("Kalan Süre: " + formatTime(remainingTime))
                 .setSmallIcon(android.R.drawable.ic_media_play)
                 .setOngoing(isPlaying)
@@ -207,6 +207,8 @@ public class RadioService extends Service {
         Intent intent = new Intent(TIMER_UPDATE);
         intent.putExtra("millis_played", timePlayedToday);
         intent.putExtra("is_playing", isPlaying);
+        intent.putExtra("station_url", currentStationUrl);
+        intent.putExtra("station_name", currentStationName);
         sendBroadcast(intent);
     }
 
@@ -228,21 +230,16 @@ public class RadioService extends Service {
     }
 
     private void createNotificationChannel() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            NotificationChannel serviceChannel = new NotificationChannel(
-                    CHANNEL_ID, "Radyo Servisi", NotificationManager.IMPORTANCE_DEFAULT);
-            NotificationManager manager = getSystemService(NotificationManager.class);
-            if (manager != null) manager.createNotificationChannel(serviceChannel);
-        }
+        NotificationChannel serviceChannel = new NotificationChannel(
+                CHANNEL_ID, "Radyo Servisi", NotificationManager.IMPORTANCE_DEFAULT);
+        NotificationManager manager = getSystemService(NotificationManager.class);
+        if (manager != null) manager.createNotificationChannel(serviceChannel);
     }
 
     @Override
     public void onDestroy() {
         if (countDownTimer != null) countDownTimer.cancel();
-        if (exoPlayer != null) {
-            exoPlayer.release();
-            exoPlayer = null;
-        }
+        if (exoPlayer != null) exoPlayer.release();
         saveProgressToDatabase();
         super.onDestroy();
     }
