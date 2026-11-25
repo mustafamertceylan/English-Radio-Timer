@@ -1,24 +1,22 @@
 <?xml version="1.0" encoding="utf-8"?>
-<manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools">
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
 
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MEDIA_PLAYBACK" />
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+    <uses-permission android:name="android.permission.WAKE_LOCK" />
 
 
     <application
-
+        android:name=".RadioTimerApp"
         android:allowBackup="true"
         android:dataExtractionRules="@xml/data_extraction_rules"
         android:fullBackupContent="@xml/backup_rules"
         android:icon="@mipmap/ic_launcher"
         android:label="@string/English_Listening" android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
-        android:theme="@style/Theme.Radio_Timer"
-        android:usesCleartextTraffic="true"
-        tools:targetApi="31">
+        android:theme="@style/Theme.Radio_Timer">
 
         <activity
 
@@ -33,7 +31,7 @@
 
         <activity
             android:name=".CalendarActivity"
-            android:label="Çalışma Takvimi" android:exported="false" />
+            android:label="@string/calendar_title" android:exported="false" />
 
         <service
             android:name=".RadioService"

@@ -32,22 +32,17 @@ android {
 }
 
 dependencies {
-    implementation("com.github.prolificinteractive:material-calendarview:2.0.1")
-    val roomVersion = "2.6.1"
-    implementation("androidx.room:room-runtime:$roomVersion")
-    annotationProcessor("androidx.room:room-compiler:$roomVersion")
+    implementation(libs.media3.exoplayer)
+    implementation(libs.media3.exoplayer.hls)
+    implementation(libs.media3.common)
 
-    // Eğer Kotlin kullanmıyorsan ksp yerine annotationProcessor yeterli olacaktır.
-}
-dependencies {
+    implementation(libs.room.runtime)
+    annotationProcessor(libs.room.compiler)
 
-
-
-    implementation("androidx.media3:media3-exoplayer:1.2.1")
-    implementation ("androidx.media3:media3-ui:1.2.1")
-    implementation ("androidx.media3:media3-common:1.2.1")
-
-    implementation ("androidx.recyclerview:recyclerview:1.3.2")
+    implementation(libs.recyclerview)
+    implementation(libs.cardview)
+    implementation(libs.prolific.calendarview)
+    implementation(libs.threetenabp)
 
     implementation(libs.appcompat)
     implementation(libs.material)

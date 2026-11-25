@@ -1,33 +1,35 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/settingsRoot"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#F5F7FA"
+    android:background="@color/bg_screen"
     android:orientation="vertical">
 
     <!-- Üst Bar (Geri butonu ve başlık) -->
     <RelativeLayout
         android:layout_width="match_parent"
         android:layout_height="?attr/actionBarSize"
-        android:background="#00B894"
+        android:background="@color/accent"
         android:paddingHorizontal="16dp">
 
         <ImageButton
             android:id="@+id/btnBack"
-            android:layout_width="40dp"
-            android:layout_height="40dp"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
             android:layout_centerVertical="true"
             android:background="?attr/selectableItemBackgroundBorderless"
+            android:contentDescription="@string/cd_back"
             android:src="@android:drawable/ic_menu_revert"
-            app:tint="#FFFFFF" />
+            app:tint="@color/on_accent" />
 
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_centerInParent="true"
-            android:text="Hedef Ayarları"
-            android:textColor="#FFFFFF"
+            android:text="@string/settings_title"
+            android:textColor="@color/on_accent"
             android:textSize="20sp"
             android:textStyle="bold" />
     </RelativeLayout>
@@ -46,6 +48,7 @@
             <androidx.cardview.widget.CardView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                app:cardBackgroundColor="@color/bg_card"
                 app:cardCornerRadius="20dp"
                 app:cardElevation="4dp"
                 app:cardUseCompatPadding="true">
@@ -54,42 +57,89 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:orientation="vertical"
-                    android:padding="24dp"
-                    android:background="#FFFFFF">
+                    android:padding="24dp">
 
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="Günlük Dinleme Hedefi"
+                        android:layout_marginBottom="16dp"
+                        android:text="@string/settings_goal_header"
+                        android:textColor="@color/text_primary"
                         android:textSize="18sp"
-                        android:textStyle="bold"
-                        android:textColor="#2D3436"
-                        android:layout_marginBottom="16dp" />
+                        android:textStyle="bold" />
 
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="Hedef süreyi saat cinsinden girin (örnek: 4)"
-                        android:textColor="#636E72"
-                        android:layout_marginBottom="8dp" />
+                        android:layout_marginBottom="8dp"
+                        android:text="@string/settings_goal_hint_text"
+                        android:textColor="@color/text_secondary" />
+
+                    <!-- Hızlı seçim chip'leri (U3) -->
+                    <com.google.android.material.chip.ChipGroup
+                        android:id="@+id/goalChipGroup"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginBottom="12dp"
+                        app:singleSelection="true">
+
+                        <com.google.android.material.chip.Chip
+                            android:id="@+id/chip15m"
+                            style="@style/Widget.Material3.Chip.Filter"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="@string/chip_15m" />
+
+                        <com.google.android.material.chip.Chip
+                            android:id="@+id/chip30m"
+                            style="@style/Widget.Material3.Chip.Filter"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="@string/chip_30m" />
+
+                        <com.google.android.material.chip.Chip
+                            android:id="@+id/chip1h"
+                            style="@style/Widget.Material3.Chip.Filter"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="@string/chip_1h" />
+
+                        <com.google.android.material.chip.Chip
+                            android:id="@+id/chip2h"
+                            style="@style/Widget.Material3.Chip.Filter"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="@string/chip_2h" />
+
+                        <com.google.android.material.chip.Chip
+                            android:id="@+id/chip4h"
+                            style="@style/Widget.Material3.Chip.Filter"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="@string/chip_4h" />
+                    </com.google.android.material.chip.ChipGroup>
 
                     <EditText
                         android:id="@+id/goalInput"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:inputType="numberDecimal"
-                        android:hint="4.0"
-                        android:padding="12dp"
+                        android:layout_marginBottom="24dp"
+                        android:autofillHints=""
                         android:background="@drawable/edit_text_background"
-                        android:layout_marginBottom="24dp" />
+                        android:digits="0123456789.,"
+                        android:hint="@string/settings_goal_input_hint"
+                        android:inputType="numberDecimal"
+                        android:padding="12dp"
+                        android:textColor="@color/text_primary"
+                        android:textColorHint="@color/text_tertiary" />
 
                     <Button
                         android:id="@+id/saveButton"
                         android:layout_width="match_parent"
                         android:layout_height="56dp"
-                        android:backgroundTint="#00B894"
-                        android:text="Kaydet"
-                        android:textColor="#FFFFFF"
+                        android:backgroundTint="@color/accent"
+                        android:text="@string/settings_save"
+                        android:textColor="@color/on_accent"
                         android:textSize="16sp"
                         android:textStyle="bold" />
 
@@ -99,11 +149,11 @@
             <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="Not: Hedef, günlük toplam dinleme sürenizi belirler. Progress bar ve takvimdeki renklendirme bu hedefe göre yapılır."
-                android:textColor="#7F8C8D"
-                android:textSize="12sp"
                 android:layout_marginTop="16dp"
-                android:paddingHorizontal="8dp" />
+                android:paddingHorizontal="8dp"
+                android:text="@string/settings_note"
+                android:textColor="@color/text_tertiary"
+                android:textSize="12sp" />
 
         </LinearLayout>
     </ScrollView>

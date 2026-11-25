@@ -2,4 +2,29 @@
 <resources>
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
+
+    <!-- Yüzeyler -->
+    <color name="bg_screen">#F5F7FA</color>
+    <color name="bg_card">#FFFFFF</color>
+
+    <!-- Metin -->
+    <color name="text_primary">#2D3436</color>
+    <color name="text_secondary">#636E72</color>
+    <color name="text_tertiary">#7F8C8D</color>
+
+    <!-- Marka -->
+    <color name="accent">#00B894</color>
+    <color name="accent_tint">#1A00B894</color>
+    <color name="on_accent">#FFFFFF</color>
+    <color name="on_accent_secondary">#E0F2F1</color>
+    <color name="progress_track">#E0E0E0</color>
+
+    <!-- Durum -->
+    <color name="goal_reached">#00B894</color>
+    <color name="goal_missed">#FF7675</color>
+    <color name="error">#D63031</color>
+
+    <!-- Giriş alanı -->
+    <color name="input_bg">#F0F0F0</color>
+    <color name="input_stroke">#B0BEC5</color>
 </resources>

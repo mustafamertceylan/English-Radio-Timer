@@ -1,21 +1,23 @@
 package com.example.radio_timer;
 
 import androidx.room.Entity;
+import androidx.room.Ignore;
 import androidx.room.PrimaryKey;
 import androidx.annotation.NonNull;
 
+/** Günlük dinleme kaydı: tarih başına bir satır. */
 @Entity(tableName = "listening_logs")
 public class ListeningLog {
     @PrimaryKey
     @NonNull
-    public String date; // Örn: "2026-03-03"
+    public String date; // "yyyy-MM-dd" (DateKeys)
     public long durationMillis;
     public boolean isGoalReached;
 
-    // 1. Oda (Room) için boş constructor (Gerekli)
+    /** Room tarafından kullanılır. */
     public ListeningLog() {}
 
-    // 2. Senin RadioService içinde kullandığın constructor (Hatanın çözümü)
+    @Ignore
     public ListeningLog(@NonNull String date, long durationMillis, boolean isGoalReached) {
         this.date = date;
         this.durationMillis = durationMillis;

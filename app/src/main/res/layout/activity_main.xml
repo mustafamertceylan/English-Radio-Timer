@@ -1,52 +1,55 @@
+<?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:background="@color/bg_screen"
     android:orientation="vertical"
-    android:background="#F5F7FA"
     android:padding="16dp">
 
     <!-- Başlık ve Ayarlar İkonu -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="horizontal"
+        android:layout_marginBottom="16dp"
         android:gravity="center_vertical"
-        android:layout_marginBottom="16dp">
+        android:orientation="horizontal">
 
         <TextView
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:text="Radyo Zamanlayıcı"
+            android:text="@string/app_title"
+            android:textColor="@color/text_primary"
             android:textSize="24sp"
-            android:textStyle="bold"
-            android:textColor="#2D3436" />
+            android:textStyle="bold" />
 
         <ImageView
             android:id="@+id/settingsIcon"
-            android:layout_width="32dp"
-            android:layout_height="32dp"
-            android:src="@android:drawable/ic_menu_manage"
-            android:padding="4dp"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
             android:clickable="true"
+            android:contentDescription="@string/cd_settings"
             android:focusable="true"
             android:foreground="?android:attr/selectableItemBackgroundBorderless"
-            android:tint="#00B894" />
+            android:padding="10dp"
+            android:src="@android:drawable/ic_menu_manage"
+            app:tint="@color/accent" />
     </LinearLayout>
 
     <!-- Üst Kart (Şu anki istasyon) -->
     <androidx.cardview.widget.CardView
-        android:id="@+id/bbcCard"
+        android:id="@+id/nowPlayingCard"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:clickable="true"
+        android:contentDescription="@string/cd_play_pause"
         android:focusable="true"
         android:foreground="?android:attr/selectableItemBackground"
+        app:cardBackgroundColor="@color/accent"
         app:cardCornerRadius="20dp"
-        app:cardElevation="8dp"
-        android:backgroundTint="#00B894">
+        app:cardElevation="8dp">
 
         <LinearLayout
             android:layout_width="match_parent"
@@ -62,28 +65,45 @@
                     android:id="@+id/stationNameTop"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="BBC World Service"
-                    android:textColor="#FFFFFF"
+                    android:layout_alignParentStart="true"
+                    android:layout_centerVertical="true"
+                    android:layout_toStartOf="@id/playIcon"
+                    android:ellipsize="end"
+                    android:maxLines="1"
+                    android:textColor="@color/on_accent"
                     android:textSize="20sp"
-                    android:textStyle="bold" />
+                    android:textStyle="bold"
+                    tools:text="BBC World Service" />
 
                 <ImageView
                     android:id="@+id/playIcon"
                     android:layout_width="32dp"
                     android:layout_height="32dp"
                     android:layout_alignParentEnd="true"
+                    android:contentDescription="@string/cd_play"
                     android:src="@android:drawable/ic_media_play"
-                    app:tint="#FFFFFF" />
+                    app:tint="@color/on_accent" />
             </RelativeLayout>
+
+            <!-- Oynatma durumu (U1) -->
+            <TextView
+                android:id="@+id/playerStatusText"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:accessibilityLiveRegion="polite"
+                android:text="@string/state_idle"
+                android:textColor="@color/on_accent_secondary"
+                android:textSize="13sp" />
 
             <TextView
                 android:id="@+id/totalDailyTime"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="0s 0dk / 4 saat"
-                android:textColor="#FFFFFF"
-                android:textSize="32sp"
-                android:layout_marginTop="16dp" />
+                android:layout_marginTop="12dp"
+                android:textColor="@color/on_accent"
+                android:textSize="28sp"
+                tools:text="0 sn / 4 sa" />
 
             <ProgressBar
                 android:id="@+id/goalProgressBar"
@@ -91,6 +111,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="8dp"
                 android:layout_marginTop="12dp"
+                android:max="100"
                 android:progress="0"
                 android:progressDrawable="@drawable/custom_progress_bar" />
 
@@ -99,21 +120,22 @@
                 android:id="@+id/percentageText"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="%0 tamamlandı"
-                android:textColor="#FFFFFF"
+                android:layout_marginTop="8dp"
+                android:gravity="center"
+                android:textColor="@color/on_accent"
                 android:textSize="14sp"
                 android:textStyle="bold"
-                android:gravity="center"
-                android:layout_marginTop="8dp"/>
+                tools:text="%0 tamamlandı" />
 
             <TextView
+                android:id="@+id/goalLabelText"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Hedef: 4 saat"
-                android:textColor="#FFFFFF"
-                android:textSize="12sp"
                 android:layout_gravity="end"
-                android:layout_marginTop="4dp"/>
+                android:layout_marginTop="4dp"
+                android:textColor="@color/on_accent"
+                android:textSize="12sp"
+                tools:text="Hedef: 4 sa" />
         </LinearLayout>
     </androidx.cardview.widget.CardView>
 
@@ -121,54 +143,70 @@
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Radyo İstasyonları"
-        android:layout_marginTop="32dp"
+        android:layout_marginTop="24dp"
+        android:text="@string/stations_header"
+        android:textColor="@color/text_primary"
         android:textSize="18sp"
-        android:textStyle="bold"
-        android:textColor="#2D3436"/>
+        android:textStyle="bold" />
 
-    <!-- İstasyon Listesi (RecyclerView) -->
+    <!-- İstasyon Listesi (RecyclerView) — 6 istasyon için kaydırılabilir -->
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/stationRecyclerView"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="16dp"
-        app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
-        android:nestedScrollingEnabled="false"/>
-
-    <View
-        android:layout_width="match_parent"
         android:layout_height="0dp"
-        android:layout_weight="1" />
+        android:layout_marginTop="12dp"
+        android:layout_marginBottom="12dp"
+        android:layout_weight="1"
+        app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager" />
 
-    <!-- Alt Kart (Takvim) -->
+    <!-- Alt Kart (Takvim + seri) -->
     <androidx.cardview.widget.CardView
         android:id="@+id/dateCard"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        app:cardCornerRadius="15dp"
         android:clickable="true"
-        android:focusable="true">
+        android:focusable="true"
+        android:foreground="?android:attr/selectableItemBackground"
+        app:cardBackgroundColor="@color/bg_card"
+        app:cardCornerRadius="15dp">
 
-        <RelativeLayout
-            android:background="#FFFFFF"
+        <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
             android:padding="16dp">
 
-            <TextView
-                android:id="@+id/currentDateText"
-                android:layout_width="wrap_content"
+            <LinearLayout
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:text="Pazar, 1 Mart 2026" />
+                android:layout_weight="1"
+                android:orientation="vertical">
+
+                <TextView
+                    android:id="@+id/currentDateText"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textColor="@color/text_primary"
+                    tools:text="Çarşamba, 25 Kasım 2026" />
+
+                <TextView
+                    android:id="@+id/streakText"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="2dp"
+                    android:text="@string/streak_none"
+                    android:textColor="@color/text_secondary"
+                    android:textSize="12sp" />
+            </LinearLayout>
 
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_alignParentEnd="true"
-                android:text="Takvimi Görüntüle →"
-                android:textColor="#00B894"
+                android:layout_marginStart="8dp"
+                android:text="@string/view_calendar"
+                android:textColor="@color/accent"
                 android:textStyle="bold" />
-        </RelativeLayout>
+        </LinearLayout>
     </androidx.cardview.widget.CardView>
 </LinearLayout>
