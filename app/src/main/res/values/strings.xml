@@ -16,6 +16,9 @@
     <string name="notif_goal_reached_title">Tebrikler!</string>
     <string name="notif_goal_reached_text">Bugünkü %1$s dinleme hedefine ulaştın.</string>
     <string name="calendar_title">Çalışma Takvimi</string>
+    <!-- Tur 2 §3.4 — Backend zorunlu -->
+    <string name="notif_interrupted">Başka bir uygulama sesi kullanıyor</string>
+    <string name="notif_sleep_sub">Uyku: %1$s</string>
 
     <!-- ===== Ana ekran ===== -->
     <string name="app_title">Radyo Zamanlayıcı</string>
@@ -35,6 +38,7 @@
     <string name="state_buffering">Arabelleğe alınıyor…</string>
     <string name="state_playing">Çalıyor</string>
     <string name="state_paused">Duraklatıldı</string>
+    <string name="state_interrupted">Başka bir uygulama sesi kullanıyor</string>
     <string name="error_network">Bağlantı hatası. İnternetinizi kontrol edin.</string>
     <string name="error_source">Bu istasyon şu an yayın vermiyor.</string>
     <string name="error_unknown">Çalma hatası oluştu.</string>
@@ -47,12 +51,16 @@
     <string name="accent_us">Amerikan aksanı</string>
     <string name="accent_ca">Kanada aksanı</string>
 
-    <!-- Bildirim izni -->
-    <string name="perm_notif_title">Bildirim İzni Gerekli</string>
-    <string name="perm_notif_message">Radyo çalarken sizi bilgilendirebilmemiz için bildirim iznine ihtiyacımız var.</string>
-    <string name="perm_notif_allow">İzin Ver</string>
-    <string name="perm_notif_cancel">Vazgeç</string>
-    <string name="perm_notif_denied">Bildirim izni reddedildi. Radyo çalarken bildirim gösterilemeyecek.</string>
+    <!-- Bildirim izni (T1) -->
+    <string name="notif_permission_warning">Bildirimler kapalı, oynatma kontrolleri görünmüyor. Açmak için dokun.</string>
+
+    <!-- Uyku zamanlayıcı (B3) -->
+    <string name="sleep_dialog_title">Uyku zamanlayıcı</string>
+    <string name="sleep_option_minutes">%1$d dakika</string>
+    <string name="sleep_cancel">Zamanlayıcıyı kapat</string>
+    <string name="sleep_remaining">Uyku: %1$s</string>
+    <string name="sleep_set_toast">Radyo %1$d dakika sonra kapanacak</string>
+    <string name="sleep_cancelled_toast">Uyku zamanlayıcı kapatıldı</string>
 
     <!-- ===== Ayarlar ===== -->
     <string name="settings_title">Hedef Ayarları</string>
@@ -82,6 +90,30 @@
     <string name="calendar_day_detail_today">%1$s: %2$s · devam ediyor</string>
     <string name="calendar_day_empty">%1$s: kayıt yok</string>
     <string name="calendar_day_prompt">Ayrıntı için bir güne dokunun</string>
+    <string name="calendar_header">%1$s %2$d</string>
+    <string-array name="calendar_month_names">
+        <item>Ocak</item>
+        <item>Şubat</item>
+        <item>Mart</item>
+        <item>Nisan</item>
+        <item>Mayıs</item>
+        <item>Haziran</item>
+        <item>Temmuz</item>
+        <item>Ağustos</item>
+        <item>Eylül</item>
+        <item>Ekim</item>
+        <item>Kasım</item>
+        <item>Aralık</item>
+    </string-array>
+    <string-array name="calendar_weekdays_short">
+        <item>Pzt</item>
+        <item>Sal</item>
+        <item>Çar</item>
+        <item>Per</item>
+        <item>Cum</item>
+        <item>Cmt</item>
+        <item>Paz</item>
+    </string-array>
 
     <!-- ===== Erişilebilirlik ===== -->
     <string name="cd_settings">Ayarlar</string>
@@ -89,4 +121,7 @@
     <string name="cd_back">Geri</string>
     <string name="cd_play">Oynat</string>
     <string name="cd_pause">Duraklat</string>
+    <string name="cd_sleep_timer">Uyku zamanlayıcı</string>
+    <string name="cd_prev_month">Önceki ay</string>
+    <string name="cd_next_month">Sonraki ay</string>
 </resources>

@@ -4,7 +4,6 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/bg_screen"
     android:orientation="vertical"
     android:padding="16dp">
 
@@ -38,6 +37,25 @@
             app:tint="@color/accent" />
     </LinearLayout>
 
+    <!-- Bildirimler kapalı uyarısı (T1); onResume'da değerlendirilir -->
+    <TextView
+        android:id="@+id/notifWarningText"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="12dp"
+        android:background="@drawable/bg_warning"
+        android:clickable="true"
+        android:focusable="true"
+        android:foreground="?android:attr/selectableItemBackground"
+        android:minHeight="48dp"
+        android:gravity="center_vertical"
+        android:paddingHorizontal="14dp"
+        android:paddingVertical="10dp"
+        android:text="@string/notif_permission_warning"
+        android:textColor="@color/warning_text"
+        android:textSize="13sp"
+        android:visibility="gone" />
+
     <!-- Üst Kart (Şu anki istasyon) -->
     <androidx.cardview.widget.CardView
         android:id="@+id/nowPlayingCard"
@@ -55,7 +73,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
-            android:padding="24dp">
+            android:padding="20dp">
 
             <RelativeLayout
                 android:layout_width="match_parent"
@@ -67,7 +85,7 @@
                     android:layout_height="wrap_content"
                     android:layout_alignParentStart="true"
                     android:layout_centerVertical="true"
-                    android:layout_toStartOf="@id/playIcon"
+                    android:layout_toStartOf="@id/sleepRemainingText"
                     android:ellipsize="end"
                     android:maxLines="1"
                     android:textColor="@color/on_accent"
@@ -75,10 +93,37 @@
                     android:textStyle="bold"
                     tools:text="BBC World Service" />
 
+                <!-- Uyku zamanlayıcı kalan süre + ikon (B3) -->
+                <TextView
+                    android:id="@+id/sleepRemainingText"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_centerVertical="true"
+                    android:layout_toStartOf="@id/sleepIcon"
+                    android:textColor="@color/on_accent_secondary"
+                    android:textSize="12sp"
+                    android:visibility="gone"
+                    tools:text="Uyku: 14 dk"
+                    tools:visibility="visible" />
+
+                <ImageView
+                    android:id="@+id/sleepIcon"
+                    android:layout_width="48dp"
+                    android:layout_height="48dp"
+                    android:layout_centerVertical="true"
+                    android:layout_toStartOf="@id/playIcon"
+                    android:background="?attr/selectableItemBackgroundBorderless"
+                    android:clickable="true"
+                    android:contentDescription="@string/cd_sleep_timer"
+                    android:focusable="true"
+                    android:padding="12dp"
+                    android:src="@drawable/ic_sleep" />
+
                 <ImageView
                     android:id="@+id/playIcon"
                     android:layout_width="32dp"
                     android:layout_height="32dp"
+                    android:layout_centerVertical="true"
                     android:layout_alignParentEnd="true"
                     android:contentDescription="@string/cd_play"
                     android:src="@android:drawable/ic_media_play"
@@ -143,7 +188,7 @@
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="24dp"
+        android:layout_marginTop="16dp"
         android:text="@string/stations_header"
         android:textColor="@color/text_primary"
         android:textSize="18sp"
@@ -157,6 +202,8 @@
         android:layout_marginTop="12dp"
         android:layout_marginBottom="12dp"
         android:layout_weight="1"
+        android:fadingEdgeLength="24dp"
+        android:requiresFadingEdge="vertical"
         app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager" />
 
     <!-- Alt Kart (Takvim + seri) -->

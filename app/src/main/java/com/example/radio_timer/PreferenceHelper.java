@@ -11,6 +11,7 @@ public class PreferenceHelper {
     private static final String KEY_LAST_STATION_URL = "last_station_url";
     private static final String KEY_LAST_STATION_NAME = "last_station_name";
     private static final String KEY_LAST_CELEBRATED_DATE = "last_celebrated_date";
+    private static final String KEY_NOTIF_PERMISSION_ASKED = "notif_permission_asked";
     private static final long DEFAULT_GOAL = 14_400_000L; // 4 saat (varsayılan)
 
     public static final long MIN_GOAL_MILLIS = 60_000L;        // 1 dk
@@ -71,5 +72,14 @@ public class PreferenceHelper {
 
     public void setLastCelebratedDate(String dateKey) {
         prefs.edit().putString(KEY_LAST_CELEBRATED_DATE, dateKey).apply();
+    }
+
+    /** T10: bildirim izni daha önce soruldu mu (yalnız bir kez sorulur). */
+    public boolean wasNotificationPermissionAsked() {
+        return prefs.getBoolean(KEY_NOTIF_PERMISSION_ASKED, false);
+    }
+
+    public void setNotificationPermissionAsked() {
+        prefs.edit().putBoolean(KEY_NOTIF_PERMISSION_ASKED, true).apply();
     }
 }

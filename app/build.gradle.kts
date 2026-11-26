@@ -14,6 +14,12 @@ android {
         versionName = "1.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+
+        javaCompileOptions {
+            annotationProcessorOptions {
+                arguments["room.schemaLocation"] = "$projectDir/schemas"
+            }
+        }
     }
 
     buildTypes {
@@ -41,8 +47,6 @@ dependencies {
 
     implementation(libs.recyclerview)
     implementation(libs.cardview)
-    implementation(libs.prolific.calendarview)
-    implementation(libs.threetenabp)
 
     implementation(libs.appcompat)
     implementation(libs.material)

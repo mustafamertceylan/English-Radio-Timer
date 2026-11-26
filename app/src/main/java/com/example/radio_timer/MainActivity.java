@@ -1,7 +1,7 @@
 package com.example.radio_timer;
 
 import android.Manifest;
-import android.app.AlertDialog;
+import android.content.ActivityNotFoundException;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
@@ -11,6 +11,9 @@ import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
+import android.net.Uri;
+import android.provider.Settings;
+import android.view.View;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
@@ -20,12 +23,15 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.cardview.widget.CardView;
+import androidx.core.app.NotificationManagerCompat;
 import androidx.core.content.ContextCompat;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
+
+import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
@@ -35,6 +41,8 @@ public class MainActivity extends AppCompatActivity {
 
     private static final int PERMISSION_REQUEST_CODE = 100;
     private static final Locale LOCALE_TR = new Locale("tr", "TR");
+    /** Uyku zamanlayıcı seçenekleri (dakika). */
+    private static final int[] SLEEP_OPTIONS = {15, 30, 45, 60};
 
     private StationAdapter stationAdapter;
     private TextView stationNameTop;
@@ -45,6 +53,9 @@ public class MainActivity extends AppCompatActivity {
     private TextView currentDateText;
     private TextView streakText;
     private ImageView playIcon;
+    private ImageView sleepIcon;
+    private TextView sleepRemainingText;
+    private TextView notifWarningText;
     private ProgressBar goalProgressBar;
     private PreferenceHelper preferenceHelper;
 
@@ -56,6 +67,10 @@ public class MainActivity extends AppCompatActivity {
     private int lastStreak = -1;
     /** Bugün hedefe ulaşıldı mı (broadcast'ten, yoksa DB'den). K7 seri metni için. */
     private boolean todayReached = false;
+    /** Son bilinen oynatma durumu (uyku zamanlayıcı yalnız idle değilken etkin). */
+    private String currentPlayerState = RadioService.STATE_IDLE;
+    /** Son bilinen uyku zamanlayıcı kalanı (ms); 0 = yok. */
+    private long sleepRemainingMs = 0L;
 
     /** Y8: Activity açıkken gece yarısında tarih kartını, ilerlemeyi ve seriyi yeniler. */
     private final Handler midnightHandler = new Handler(Looper.getMainLooper());
@@ -76,23 +91,27 @@ public class MainActivity extends AppCompatActivity {
         @Override
         public void onReceive(Context context, Intent intent) {
             if (!RadioService.ACTION_STATE_UPDATE.equals(intent.getAction())) return;
+            String dateKey = intent.getStringExtra(RadioService.EXTRA_DATE_KEY);
+            // T5: gösterilen günden eski bir güne ait (geç gelmiş) broadcast yok sayılır.
+            if (dateKey != null && shownDateKey != null && dateKey.compareTo(shownDateKey) < 0) return;
             hasServiceState = true;
 
             long millisPlayed = intent.getLongExtra(RadioService.EXTRA_MILLIS_PLAYED, 0L);
             long dailyGoal = intent.getLongExtra(RadioService.EXTRA_DAILY_GOAL, 0L);
             if (dailyGoal <= 0) dailyGoal = preferenceHelper.getDailyGoal();
             boolean goalReached = intent.getBooleanExtra(RadioService.EXTRA_GOAL_REACHED, false);
-            String dateKey = intent.getStringExtra(RadioService.EXTRA_DATE_KEY);
             boolean isPlaying = intent.getBooleanExtra(RadioService.EXTRA_IS_PLAYING, false);
             String playerState = intent.getStringExtra(RadioService.EXTRA_PLAYER_STATE);
             String errorCode = intent.getStringExtra(RadioService.EXTRA_ERROR_CODE);
             String stationUrl = intent.getStringExtra(RadioService.EXTRA_STATION_URL);
             String stationName = intent.getStringExtra(RadioService.EXTRA_STATION_NAME);
+            long sleepRemaining = intent.getLongExtra(RadioService.EXTRA_SLEEP_REMAINING_MS, 0L);
 
             if (stationName != null) stationNameTop.setText(stationName);
             showProgress(millisPlayed, dailyGoal, goalReached);
             showPlayerState(playerState, errorCode, isPlaying);
             stationAdapter.setPlaybackState(stationUrl, isPlaying, playerState);
+            showSleepTimer(sleepRemaining);
 
             boolean refreshStreak = false;
             if (dateKey != null && !dateKey.equals(shownDateKey)) {
@@ -123,6 +142,9 @@ public class MainActivity extends AppCompatActivity {
         currentDateText = findViewById(R.id.currentDateText);
         streakText = findViewById(R.id.streakText);
         playIcon = findViewById(R.id.playIcon);
+        sleepIcon = findViewById(R.id.sleepIcon);
+        sleepRemainingText = findViewById(R.id.sleepRemainingText);
+        notifWarningText = findViewById(R.id.notifWarningText);
         goalProgressBar = findViewById(R.id.goalProgressBar);
         RecyclerView stationRecyclerView = findViewById(R.id.stationRecyclerView);
         CardView nowPlayingCard = findViewById(R.id.nowPlayingCard);
@@ -159,7 +181,10 @@ public class MainActivity extends AppCompatActivity {
             startForegroundServiceCompat(serviceIntent);
         });
 
-        requestNotificationPermission();
+        sleepIcon.setOnClickListener(v -> showSleepTimerDialog());
+        notifWarningText.setOnClickListener(v -> openNotificationSettings());
+
+        maybeRequestNotificationPermission();
     }
 
     @Override
@@ -175,6 +200,7 @@ public class MainActivity extends AppCompatActivity {
         requestServiceState();
         loadStreak();
         scheduleMidnightRefresh();
+        updateNotificationWarning();
     }
 
     @Override
@@ -209,6 +235,7 @@ public class MainActivity extends AppCompatActivity {
         showProgress(0L, dailyGoal, false);
         showPlayerState(RadioService.STATE_IDLE, null, false);
         stationAdapter.setPlaybackState(last.getUrl(), false, RadioService.STATE_IDLE);
+        showSleepTimer(0L);
         loadTodayFromDb(dailyGoal);
     }
 
@@ -259,6 +286,11 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void showPlayerState(@Nullable String state, @Nullable String errorCode, boolean isPlaying) {
+        currentPlayerState = state != null ? state : RadioService.STATE_IDLE;
+        boolean sleepEnabled = !RadioService.STATE_IDLE.equals(currentPlayerState);
+        sleepIcon.setEnabled(sleepEnabled);
+        sleepIcon.setAlpha(sleepEnabled ? 1f : 0.4f);
+
         playIcon.setImageResource(isPlaying
                 ? android.R.drawable.ic_media_pause
                 : android.R.drawable.ic_media_play);
@@ -290,7 +322,10 @@ public class MainActivity extends AppCompatActivity {
             msg = R.string.state_playing;
         } else if (RadioService.STATE_PAUSED.equals(state)) {
             msg = R.string.state_paused;
+        } else if (RadioService.STATE_INTERRUPTED.equals(state)) {
+            msg = R.string.state_interrupted;
         } else {
+            // IDLE ve bilinmeyen değerler (ileriye dönük güvenlik)
             msg = R.string.state_idle;
         }
         playerStatusText.setText(msg);
@@ -331,21 +366,89 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    private void requestNotificationPermission() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            if (checkSelfPermission(Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
-                if (shouldShowRequestPermissionRationale(Manifest.permission.POST_NOTIFICATIONS)) {
-                    new AlertDialog.Builder(this)
-                            .setTitle(R.string.perm_notif_title)
-                            .setMessage(R.string.perm_notif_message)
-                            .setPositiveButton(R.string.perm_notif_allow, (dialog, which) ->
-                                    requestPermissions(new String[]{Manifest.permission.POST_NOTIFICATIONS},
-                                            PERMISSION_REQUEST_CODE))
-                            .setNegativeButton(R.string.perm_notif_cancel, null)
-                            .show();
-                } else {
-                    requestPermissions(new String[]{Manifest.permission.POST_NOTIFICATIONS}, PERMISSION_REQUEST_CODE);
-                }
+    // ===== Uyku zamanlayıcı (B3) =====
+
+    private void showSleepTimer(long remainingMs) {
+        sleepRemainingMs = Math.max(0L, remainingMs);
+        if (sleepRemainingMs > 0) {
+            sleepRemainingText.setText(getString(R.string.sleep_remaining,
+                    TimeFormatter.formatGoal(TimeFormatter.roundUpToMinute(sleepRemainingMs))));
+            sleepRemainingText.setVisibility(View.VISIBLE);
+        } else {
+            sleepRemainingText.setVisibility(View.GONE);
+        }
+    }
+
+    private void showSleepTimerDialog() {
+        if (RadioService.STATE_IDLE.equals(currentPlayerState)) return;
+        final boolean active = sleepRemainingMs > 0;
+        String[] items = new String[SLEEP_OPTIONS.length + (active ? 1 : 0)];
+        for (int i = 0; i < SLEEP_OPTIONS.length; i++) {
+            items[i] = getString(R.string.sleep_option_minutes, SLEEP_OPTIONS[i]);
+        }
+        if (active) items[SLEEP_OPTIONS.length] = getString(R.string.sleep_cancel);
+
+        new MaterialAlertDialogBuilder(this)
+                .setTitle(R.string.sleep_dialog_title)
+                .setSingleChoiceItems(items, -1, (dialog, which) -> {
+                    dialog.dismiss();
+                    int minutes = which < SLEEP_OPTIONS.length ? SLEEP_OPTIONS[which] : 0;
+                    sendSleepTimer(minutes);
+                })
+                .show();
+    }
+
+    /** @param minutes 15/30/45/60; 0 = iptal. */
+    private void sendSleepTimer(int minutes) {
+        if (RadioService.STATE_IDLE.equals(currentPlayerState)) return;
+        Intent intent = new Intent(this, RadioService.class);
+        intent.setAction(RadioService.ACTION_SLEEP_TIMER);
+        intent.putExtra(RadioService.EXTRA_SLEEP_MINUTES, minutes);
+        try {
+            startService(intent);
+        } catch (IllegalStateException e) {
+            return;
+        }
+        if (minutes > 0) {
+            Toast.makeText(this, getString(R.string.sleep_set_toast, minutes), Toast.LENGTH_SHORT).show();
+        } else {
+            Toast.makeText(this, R.string.sleep_cancelled_toast, Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    // ===== Bildirim izni (T1, T10) =====
+
+    /** API 33+: izin yoksa ve daha önce sorulmadıysa gerekçe diyaloğu olmadan bir kez sorar. */
+    private void maybeRequestNotificationPermission() {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) return;
+        if (checkSelfPermission(Manifest.permission.POST_NOTIFICATIONS) == PackageManager.PERMISSION_GRANTED) return;
+        if (preferenceHelper.wasNotificationPermissionAsked()) return;
+        preferenceHelper.setNotificationPermissionAsked();
+        requestPermissions(new String[]{Manifest.permission.POST_NOTIFICATIONS}, PERMISSION_REQUEST_CODE);
+    }
+
+    /** Bildirimler kapalıysa (tüm API'lerde) kalıcı uyarı satırı gösterilir. */
+    private void updateNotificationWarning() {
+        boolean enabled = NotificationManagerCompat.from(this).areNotificationsEnabled();
+        notifWarningText.setVisibility(enabled ? View.GONE : View.VISIBLE);
+    }
+
+    private void openNotificationSettings() {
+        Uri packageUri = Uri.fromParts("package", getPackageName(), null);
+        Intent intent;
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            intent = new Intent(Settings.ACTION_APP_NOTIFICATION_SETTINGS);
+            intent.putExtra(Settings.EXTRA_APP_PACKAGE, getPackageName());
+        } else {
+            intent = new Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS, packageUri);
+        }
+        try {
+            startActivity(intent);
+        } catch (ActivityNotFoundException e) {
+            try {
+                startActivity(new Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS, packageUri));
+            } catch (ActivityNotFoundException ignored) {
+                // Ayarlar ekranı açılamıyor; satır görünür kalır.
             }
         }
     }
@@ -354,10 +457,7 @@ public class MainActivity extends AppCompatActivity {
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
         if (requestCode == PERMISSION_REQUEST_CODE) {
-            boolean granted = grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED;
-            if (!granted) {
-                Toast.makeText(this, R.string.perm_notif_denied, Toast.LENGTH_LONG).show();
-            }
+            updateNotificationWarning();
         }
     }
 }

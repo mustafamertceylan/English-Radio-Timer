@@ -5,7 +5,6 @@
     android:id="@+id/main"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/bg_screen"
     android:orientation="vertical">
 
     <RelativeLayout
@@ -26,7 +25,6 @@
             app:tint="@color/on_accent" />
 
         <TextView
-            android:id="@+id/calendarHeaderTitle"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_centerInParent="true"
@@ -60,21 +58,62 @@
                     android:orientation="vertical"
                     android:padding="8dp">
 
-                    <com.prolificinteractive.materialcalendarview.MaterialCalendarView
-                        android:id="@+id/calendarView"
+                    <!-- Ay başlığı: önceki ay | "Kasım 2026" | sonraki ay -->
+                    <LinearLayout
                         android:layout_width="match_parent"
-                        android:layout_height="320dp"
-                        android:background="@color/bg_card"
-                        app:mcv_dateTextAppearance="@style/CalendarDateText"
-                        app:mcv_headerTextAppearance="@style/CalendarHeaderText"
-                        app:mcv_selectionColor="@color/accent"
-                        app:mcv_showOtherDates="all"
-                        app:mcv_weekDayTextAppearance="@style/CalendarWeekDayText" />
+                        android:layout_height="wrap_content"
+                        android:gravity="center_vertical"
+                        android:orientation="horizontal">
+
+                        <ImageButton
+                            android:id="@+id/btnPrevMonth"
+                            android:layout_width="48dp"
+                            android:layout_height="48dp"
+                            android:background="?attr/selectableItemBackgroundBorderless"
+                            android:contentDescription="@string/cd_prev_month"
+                            android:src="@drawable/ic_chevron_left" />
+
+                        <TextView
+                            android:id="@+id/calendarHeaderTitle"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:accessibilityLiveRegion="polite"
+                            android:gravity="center"
+                            android:textColor="@color/text_primary"
+                            android:textSize="18sp"
+                            android:textStyle="bold"
+                            tools:text="Kasım 2026" />
+
+                        <ImageButton
+                            android:id="@+id/btnNextMonth"
+                            android:layout_width="48dp"
+                            android:layout_height="48dp"
+                            android:background="?attr/selectableItemBackgroundBorderless"
+                            android:contentDescription="@string/cd_next_month"
+                            android:src="@drawable/ic_chevron_right" />
+                    </LinearLayout>
+
+                    <!-- Gün adları (Pazartesi başlangıç); kodda doldurulur -->
+                    <LinearLayout
+                        android:id="@+id/weekdayHeader"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="4dp"
+                        android:orientation="horizontal" />
+
+                    <androidx.recyclerview.widget.RecyclerView
+                        android:id="@+id/calendarGrid"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="4dp"
+                        android:nestedScrollingEnabled="false"
+                        android:overScrollMode="never" />
 
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:layout_marginTop="16dp"
+                        android:layout_marginTop="12dp"
                         android:gravity="center"
                         android:orientation="horizontal">
 
@@ -106,7 +145,7 @@
                             android:textSize="12sp" />
                     </LinearLayout>
 
-                    <!-- Seçilen gün ayrıntısı (U7) -->
+                    <!-- Seçilen gün ayrıntısı -->
                     <TextView
                         android:id="@+id/selectedDayText"
                         android:layout_width="match_parent"
@@ -143,7 +182,7 @@
                         android:textColor="@color/on_accent"
                         android:textSize="24sp"
                         android:textStyle="bold"
-                        tools:text="Aylık toplam: 12 sa 5 dk 9 sn" />
+                        tools:text="Aylık toplam: 12 sa 5 dk" />
 
                     <TextView
                         android:id="@+id/monthlySubtitle"

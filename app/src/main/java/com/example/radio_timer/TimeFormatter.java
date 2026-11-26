@@ -37,6 +37,11 @@ public final class TimeFormatter {
         return h + " " + UNIT_HOUR + " " + m + " " + UNIT_MINUTE;
     }
 
+    /** Geri sayımlar için yukarı yuvarlar (14 dk 59 sn ⇒ 15 dk); negatif ⇒ 0. */
+    public static long roundUpToMinute(long millis) {
+        return ((Math.max(0L, millis) + 59_999L) / 60_000L) * 60_000L;
+    }
+
     /** "02:05:09" (Locale.US). */
     public static String formatClock(long millis) {
         long totalSec = Math.max(0, millis) / 1000;

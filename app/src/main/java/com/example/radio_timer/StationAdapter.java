@@ -86,7 +86,9 @@ public class StationAdapter extends RecyclerView.Adapter<StationAdapter.StationV
         } else if (connecting || buffering) {
             holder.stationProgress.setVisibility(View.VISIBLE);
             holder.stationTimer.setText(connecting ? R.string.state_connecting : R.string.state_buffering);
-        } else if (isCurrent && RadioService.STATE_PLAYING.equals(playerState)) {
+        } else if (isCurrent && (RadioService.STATE_PLAYING.equals(playerState)
+                || RadioService.STATE_INTERRUPTED.equals(playerState))) {
+            // T3: geçici bastırma PLAYING gibi gösterilir (hata/bağlanıyor göstergesi yok).
             holder.stationProgress.setVisibility(View.GONE);
             holder.stationTimer.setText(R.string.state_playing);
         } else {

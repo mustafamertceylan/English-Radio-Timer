@@ -19,4 +19,7 @@
 
     <color name="input_bg">#2A2A2A</color>
     <color name="input_stroke">#555F63</color>
+
+    <color name="warning_bg">#3D3200</color>
+    <color name="warning_text">#FFE08A</color>
 </resources>

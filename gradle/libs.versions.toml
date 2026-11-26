@@ -11,8 +11,6 @@ media3 = "1.2.1"
 room = "2.6.1"
 recyclerview = "1.3.2"
 cardview = "1.0.0"
-prolificCalendarview = "2.0.1"
-threetenabp = "1.1.1"
 
 [libraries]
 junit = { group = "junit", name = "junit", version.ref = "junit" }
@@ -29,8 +27,6 @@ room-runtime = { group = "androidx.room", name = "room-runtime", version.ref = "
 room-compiler = { group = "androidx.room", name = "room-compiler", version.ref = "room" }
 recyclerview = { group = "androidx.recyclerview", name = "recyclerview", version.ref = "recyclerview" }
 cardview = { group = "androidx.cardview", name = "cardview", version.ref = "cardview" }
-prolific-calendarview = { group = "com.github.prolificinteractive", name = "material-calendarview", version.ref = "prolificCalendarview" }
-threetenabp = { group = "com.jakewharton.threetenabp", name = "threetenabp", version.ref = "threetenabp" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

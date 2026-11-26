@@ -6,7 +6,7 @@ import androidx.room.Room;
 import androidx.room.RoomDatabase;
 
 /** Room veritabanı (şema v1). */
-@Database(entities = {ListeningLog.class}, version = 1, exportSchema = false)
+@Database(entities = {ListeningLog.class}, version = 1, exportSchema = true)
 public abstract class AppDatabase extends RoomDatabase {
 
     private static volatile AppDatabase instance;

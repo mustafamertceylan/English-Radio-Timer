@@ -40,6 +40,11 @@ public class SettingsActivity extends AppCompatActivity {
     private PreferenceHelper preferenceHelper;
     /** Chip seçimi EditText'i doldururken TextWatcher'ın seçimi temizlemesini engeller. */
     private boolean updatingFromChip = false;
+    /**
+     * T8: onCreate ile onResume arasında (ilk işaretleme ve döndürme sonrası durum geri yüklemesi)
+     * chip listener'ı tetiklense bile kayıt yapılmaz.
+     */
+    private boolean suppressChipSave = true;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -57,6 +62,7 @@ public class SettingsActivity extends AppCompatActivity {
 
         goalInput = findViewById(R.id.goalInput);
         goalChipGroup = findViewById(R.id.goalChipGroup);
+        suppressChipSave = true;
         Button saveButton = findViewById(R.id.saveButton);
 
         // Mevcut hedefi gereksiz ondalık olmadan göster ("4", "2.5")
@@ -65,7 +71,7 @@ public class SettingsActivity extends AppCompatActivity {
         checkChipFor(currentGoal);
 
         goalChipGroup.setOnCheckedStateChangeListener((group, checkedIds) -> {
-            if (checkedIds.isEmpty() || updatingFromChip) return;
+            if (checkedIds.isEmpty() || updatingFromChip || suppressChipSave) return;
             int id = checkedIds.get(0);
             for (int i = 0; i < CHIP_IDS.length; i++) {
                 if (CHIP_IDS[i] == id) {
@@ -97,6 +103,18 @@ public class SettingsActivity extends AppCompatActivity {
 
         findViewById(R.id.btnBack).setOnClickListener(v -> finish());
         saveButton.setOnClickListener(v -> saveGoal());
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        suppressChipSave = false;
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        suppressChipSave = true;
     }
 
     private void checkChipFor(long millis) {

@@ -53,6 +53,15 @@ public class TimeFormatterTest {
     }
 
     @Test
+    public void roundUpToMinute() {
+        assertEquals(0L, TimeFormatter.roundUpToMinute(0));
+        assertEquals(0L, TimeFormatter.roundUpToMinute(-5 * SEC));
+        assertEquals(MIN, TimeFormatter.roundUpToMinute(1));
+        assertEquals(15 * MIN, TimeFormatter.roundUpToMinute(14 * MIN + 59 * SEC));
+        assertEquals(15 * MIN, TimeFormatter.roundUpToMinute(15 * MIN));
+    }
+
+    @Test
     public void formatClock() {
         assertEquals("00:00:00", TimeFormatter.formatClock(0));
         assertEquals("02:05:09", TimeFormatter.formatClock(2 * HOUR + 5 * MIN + 9 * SEC));
