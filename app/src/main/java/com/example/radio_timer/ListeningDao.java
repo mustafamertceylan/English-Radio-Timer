@@ -14,11 +14,19 @@ public interface ListeningDao {
     @Query("SELECT * FROM listening_logs WHERE date = :targetDate LIMIT 1")
     ListeningLog getLogByDate(String targetDate);
 
-    // Belirli bir ayın toplam dinleme süresini milisaniye cinsinden getirir
-    @Query("SELECT SUM(durationMillis) FROM listening_logs WHERE date LIKE :monthPattern || '%'")
-    long getTotalTimeForMonth(String monthPattern); // monthPattern örneği: "2026-03"
+    /** Belirli bir ayın toplam dinleme süresi (ms). monthPrefix: "yyyy-MM". Kayıt yoksa 0. */
+    @Query("SELECT COALESCE(SUM(durationMillis), 0) FROM listening_logs WHERE date LIKE :monthPrefix || '%'")
+    long getTotalTimeForMonth(String monthPrefix);
 
-    @Query("SELECT * FROM listening_logs ORDER BY date DESC")
-    List<ListeningLog> getAllLogs();
+    /** Hedef bayrağını yalnız yükseltir (asla düşürmez). Etkilenen satır sayısını döndürür. */
+    @Query("UPDATE listening_logs SET isGoalReached = 1 WHERE date = :dateKey AND durationMillis >= :goalMillis")
+    int markGoalReachedIfAtLeast(String dateKey, long goalMillis);
 
+    /** Ayın kayıtları, tarihe göre artan. monthPrefix: "yyyy-MM". */
+    @Query("SELECT * FROM listening_logs WHERE date LIKE :monthPrefix || '%' ORDER BY date ASC")
+    List<ListeningLog> getLogsForMonth(String monthPrefix);
+
+    /** Hedefe ulaşılan günler, yeniden eskiye. */
+    @Query("SELECT date FROM listening_logs WHERE isGoalReached = 1 ORDER BY date DESC")
+    List<String> getReachedDates();
 }

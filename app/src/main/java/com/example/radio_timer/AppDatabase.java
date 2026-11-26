@@ -5,18 +5,16 @@ import androidx.room.Database;
 import androidx.room.Room;
 import androidx.room.RoomDatabase;
 
-// entities listesinin ListeningLog ile uyumlu olduğundan emin ol
-@Database(entities = {ListeningLog.class}, version = 1, exportSchema = false)
+/** Room veritabanı (şema v1). */
+@Database(entities = {ListeningLog.class}, version = 1, exportSchema = true)
 public abstract class AppDatabase extends RoomDatabase {
 
-    // Volatile anahtar kelimesi, değişkenin değerinin tüm thread'lerde güncel kalmasını sağlar
     private static volatile AppDatabase instance;
 
     public abstract ListeningDao listeningDao();
 
     public static AppDatabase getInstance(Context context) {
         if (instance == null) {
-            // "Double-checked locking" yöntemi ile thread safety sağlıyoruz
             synchronized (AppDatabase.class) {
                 if (instance == null) {
                     instance = Room.databaseBuilder(context.getApplicationContext(),

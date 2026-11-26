@@ -1,39 +1,47 @@
 package com.example.radio_timer;
 
-import android.graphics.Color;
-import androidx.core.graphics.Insets;
-import android.graphics.drawable.Drawable;
-import android.icu.text.SimpleDateFormat;
+import android.content.Context;
 import android.os.Bundle;
-import android.text.style.ForegroundColorSpan;
-import android.view.View;
+import android.view.Gravity;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.ContextCompat;
+import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
-import androidx.core.view.WindowInsetsCompat;;
+import androidx.core.view.WindowInsetsCompat;
+import androidx.recyclerview.widget.GridLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 
-
-import com.prolificinteractive.materialcalendarview.CalendarDay;
-import com.prolificinteractive.materialcalendarview.DayViewDecorator;
-import com.prolificinteractive.materialcalendarview.DayViewFacade;
-import com.prolificinteractive.materialcalendarview.MaterialCalendarView;
-
-
-import java.util.Date;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashSet;
+import java.util.HashMap;
 import java.util.List;
-import java.util.Locale;
+import java.util.Map;
 
+/** Kendi ay ızgarası (T4): Türkçe ay/gün adları, Pazartesi başlangıç, kütüphanesiz. */
 public class CalendarActivity extends AppCompatActivity {
 
-    private MaterialCalendarView calendarView;
-    private TextView monthlyTotalText;
+    private static final String STATE_YEAR = "cal_year";
+    private static final String STATE_MONTH = "cal_month";
+    private static final String STATE_SELECTED = "cal_selected";
 
-    // CalendarActivity.java
+    private TextView calendarHeaderTitle;
+    private TextView monthlyTotalText;
+    private TextView monthlySubtitle;
+    private TextView selectedDayText;
+    private MonthGridAdapter gridAdapter;
+    private String[] monthNames;
+
+    private int year;
+    private int month; // 1..12
+    @Nullable private String selectedKey;
+
+    /** Ekranda gösterilen ayın anahtarı ("yyyy-MM"); geç gelen eski sonuçları elemek için. */
+    private String displayedMonthKey;
+    /** Seçili gün isteklerinin sırası; geç gelen eski sonuçları elemek için. */
+    private int dayRequestSeq = 0;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -41,96 +49,149 @@ public class CalendarActivity extends AppCompatActivity {
         setContentView(R.layout.activity_calendar);
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(android.R.id.content), (v, insets) -> {
             Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
-
-            // Üst kısım (Şarj göstergesi) için boşluk ver
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
-
             return insets;
         });
 
-        calendarView = findViewById(R.id.calendarView);
-        // 1. KRİTİK ADIM: TextView'ı mutlaka bağla (XML'deki ID ile aynı olmalı)
+        monthNames = getResources().getStringArray(R.array.calendar_month_names);
+        calendarHeaderTitle = findViewById(R.id.calendarHeaderTitle);
         monthlyTotalText = findViewById(R.id.monthlyTotalTime);
+        monthlySubtitle = findViewById(R.id.monthlySubtitle);
+        selectedDayText = findViewById(R.id.selectedDayText);
 
-        View topBackLayout = findViewById(R.id.topBackLayout);
-        topBackLayout.setOnClickListener(v -> finish());
+        if (savedInstanceState != null && savedInstanceState.containsKey(STATE_YEAR)) {
+            year = savedInstanceState.getInt(STATE_YEAR);
+            month = savedInstanceState.getInt(STATE_MONTH);
+            selectedKey = savedInstanceState.getString(STATE_SELECTED);
+        } else {
+            int[] ym = CalendarMath.currentYearMonth();
+            year = ym[0];
+            month = ym[1];
+        }
+
+        buildWeekdayHeader();
+
+        RecyclerView grid = findViewById(R.id.calendarGrid);
+        grid.setLayoutManager(new GridLayoutManager(this, 7));
+        grid.setNestedScrollingEnabled(false);
+        grid.setItemAnimator(null);
+        gridAdapter = new MonthGridAdapter(this, this::onDayClicked);
+        grid.setAdapter(gridAdapter);
+
+        findViewById(R.id.btnBack).setOnClickListener(v -> finish());
+        findViewById(R.id.btnPrevMonth).setOnClickListener(v -> changeMonth(-1));
+        findViewById(R.id.btnNextMonth).setOnClickListener(v -> changeMonth(1));
     }
 
     @Override
     protected void onResume() {
         super.onResume();
-        // 2. KRİTİK ADIM: Her şeyi tek seferde yükleyen metodu çağırıyoruz
-        loadCalendarAndStats();
+        showMonth();
+        if (selectedKey != null) showDayDetail(selectedKey);
     }
 
-    private void loadCalendarAndStats() {
-        String currentMonth = new SimpleDateFormat("yyyy-MM", Locale.getDefault()).format(new Date());
-        PreferenceHelper prefs = new PreferenceHelper(this);
-        long dailyGoal = prefs.getDailyGoal();
+    @Override
+    protected void onSaveInstanceState(@NonNull Bundle outState) {
+        super.onSaveInstanceState(outState);
+        outState.putInt(STATE_YEAR, year);
+        outState.putInt(STATE_MONTH, month);
+        outState.putString(STATE_SELECTED, selectedKey);
+    }
 
-        new Thread(() -> {
-            AppDatabase db = AppDatabase.getInstance(this);
-            List<ListeningLog> allLogs = db.listeningDao().getAllLogs();
-            long monthlyTotalMillis = db.listeningDao().getTotalTimeForMonth(currentMonth);
+    private void buildWeekdayHeader() {
+        LinearLayout header = findViewById(R.id.weekdayHeader);
+        header.removeAllViews();
+        int color = ContextCompat.getColor(this, R.color.text_secondary);
+        for (String name : getResources().getStringArray(R.array.calendar_weekdays_short)) {
+            TextView tv = new TextView(this);
+            tv.setLayoutParams(new LinearLayout.LayoutParams(0,
+                    LinearLayout.LayoutParams.WRAP_CONTENT, 1f));
+            tv.setGravity(Gravity.CENTER);
+            tv.setText(name);
+            tv.setTextColor(color);
+            tv.setTextSize(12);
+            header.addView(tv);
+        }
+    }
 
-            List<CalendarDay> reachedDays = new ArrayList<>();
-            List<CalendarDay> missedDays = new ArrayList<>();
+    private void changeMonth(int delta) {
+        int[] ym = CalendarMath.addMonths(year, month, delta);
+        year = ym[0];
+        month = ym[1];
+        // Önceki ayın gün detayı yeni ayda kalmasın; bekleyen detay sorgusunu da geçersiz kıl.
+        selectedKey = null;
+        dayRequestSeq++;
+        selectedDayText.setText(R.string.calendar_day_prompt);
+        showMonth();
+    }
 
-            for (ListeningLog log : allLogs) {
-                String[] parts = log.date.split("-");
-                CalendarDay day = CalendarDay.from(
-                        Integer.parseInt(parts[0]),
-                        Integer.parseInt(parts[1]),
-                        Integer.parseInt(parts[2])
-                );
+    private void showMonth() {
+        final String monthKey = DateKeys.monthKey(year, month);
+        displayedMonthKey = monthKey;
 
-                if (log.durationMillis >= dailyGoal) { // Burada dailyGoal kullanıyoruz
-                    reachedDays.add(day);
-                } else {
-                    missedDays.add(day);
+        String monthName = monthNames[month - 1];
+        calendarHeaderTitle.setText(getString(R.string.calendar_header, monthName, year));
+        monthlySubtitle.setText(getString(R.string.calendar_month_subtitle, monthName));
+
+        gridAdapter.setMonth(CalendarMath.monthCells(year, month), DateKeys.today());
+        gridAdapter.setSelected(selectedKey);
+
+        final Context appContext = getApplicationContext();
+        AppExecutors.diskIO().execute(() -> {
+            ListeningDao dao = AppDatabase.getInstance(appContext).listeningDao();
+            List<ListeningLog> logs = dao.getLogsForMonth(monthKey);
+            long monthlyTotalMillis = dao.getTotalTimeForMonth(monthKey);
+
+            Map<String, Boolean> goalByDate = new HashMap<>();
+            for (ListeningLog log : logs) {
+                if (log.isGoalReached || log.durationMillis > 0) {
+                    goalByDate.put(log.date, log.isGoalReached);
                 }
             }
 
             runOnUiThread(() -> {
-                if (monthlyTotalText != null) {
-                    monthlyTotalText.setText(formatToShortTime(monthlyTotalMillis));
-                }
-                calendarView.removeDecorators();
-                calendarView.addDecorator(new GoalReachedDecorator(
-                        ContextCompat.getDrawable(this, R.drawable.circle_filled_green), reachedDays));
-                calendarView.addDecorator(new GoalReachedDecorator(
-                        ContextCompat.getDrawable(this, R.drawable.circle_filled_red), missedDays));
+                if (isFinishing() || !monthKey.equals(displayedMonthKey)) return;
+                monthlyTotalText.setText(getString(R.string.calendar_month_total,
+                        TimeFormatter.formatGoal(monthlyTotalMillis)));
+                gridAdapter.setGoalStatus(goalByDate);
             });
-        }).start();
+        });
     }
 
-    private String formatToShortTime(long millis) {
-        long hours = millis / 3600000;
-        long minutes = (millis % 3600000) / 60000;
-        long seconds = (millis % 60000) / 1000;
-        return hours + "s " + minutes + "d " + seconds + "sn";
+    private void onDayClicked(String dateKey) {
+        selectedKey = dateKey;
+        gridAdapter.setSelected(dateKey);
+        showDayDetail(dateKey);
     }
 
-    private static class GoalReachedDecorator implements DayViewDecorator {
-        private final Drawable drawable;
-        private final HashSet<CalendarDay> dates;
-
-        public GoalReachedDecorator(Drawable drawable, Collection<CalendarDay> dates) {
-            this.drawable = drawable;
-            this.dates = new HashSet<>(dates);
-        }
-
-        @Override
-        public boolean shouldDecorate(CalendarDay day) {
-            return dates.contains(day);
-        }
-
-        @Override
-        public void decorate(DayViewFacade view) {
-            // Nokta yerine arka planı (dolu daire) ayarlıyoruz
-            view.setBackgroundDrawable(drawable);
-            // Yazıyı beyaz yaparak kontrastı sağlıyoruz
-            view.addSpan(new ForegroundColorSpan(Color.WHITE));
-        }
+    private void showDayDetail(@NonNull final String dateKey) {
+        int[] ymd = DateKeys.parse(dateKey);
+        final String label = ymd[2] + " " + monthNames[ymd[1] - 1] + " " + ymd[0];
+        final int seq = ++dayRequestSeq;
+        final Context appContext = getApplicationContext();
+        AppExecutors.diskIO().execute(() -> {
+            ListeningLog log = AppDatabase.getInstance(appContext).listeningDao().getLogByDate(dateKey);
+            final long duration = log != null ? log.durationMillis : 0L;
+            final boolean reached = log != null && log.isGoalReached;
+            final boolean hasRecord = log != null && (duration > 0 || reached);
+            final boolean isToday = dateKey.equals(DateKeys.today());
+            runOnUiThread(() -> {
+                if (isFinishing() || seq != dayRequestSeq) return;
+                if (!hasRecord) {
+                    selectedDayText.setText(getString(R.string.calendar_day_empty, label));
+                    return;
+                }
+                String time = TimeFormatter.formatShort(duration);
+                int res;
+                if (reached) {
+                    res = R.string.calendar_day_detail_reached;
+                } else if (isToday) {
+                    res = R.string.calendar_day_detail_today;
+                } else {
+                    res = R.string.calendar_day_detail_missed;
+                }
+                selectedDayText.setText(getString(res, label, time));
+            });
+        });
     }
 }

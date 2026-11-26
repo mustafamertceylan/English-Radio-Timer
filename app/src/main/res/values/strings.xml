@@ -1,3 +1,127 @@
 <resources>
     <string name="English_Listening">Radio_Timer</string>
+
+    <!-- ===== Backend (RadioService / Manifest) — PM dokümanı §2.4, ad ve metin birebir ===== -->
+    <string name="notif_channel_playback">Radyo oynatma</string>
+    <string name="notif_channel_goal">Hedef bildirimleri</string>
+    <string name="notif_connecting">Bağlanıyor…</string>
+    <string name="notif_buffering">Arabelleğe alınıyor…</string>
+    <string name="notif_paused">Duraklatıldı</string>
+    <string name="notif_error">Yayın açılamadı. Tekrar denemek için Devam et\'e dokunun.</string>
+    <string name="notif_remaining">Kalan süre: %1$s</string>
+    <string name="notif_goal_done_ongoing">Günlük hedef tamamlandı · Bugün %1$s</string>
+    <string name="notif_action_pause">Duraklat</string>
+    <string name="notif_action_play">Devam et</string>
+    <string name="notif_action_stop">Kapat</string>
+    <string name="notif_goal_reached_title">Tebrikler!</string>
+    <string name="notif_goal_reached_text">Bugünkü %1$s dinleme hedefine ulaştın.</string>
+    <string name="calendar_title">Çalışma Takvimi</string>
+    <!-- Tur 2 §3.4 — Backend zorunlu -->
+    <string name="notif_interrupted">Başka bir uygulama sesi kullanıyor</string>
+    <string name="notif_sleep_sub">Uyku: %1$s</string>
+
+    <!-- ===== Ana ekran ===== -->
+    <string name="app_title">Radyo Zamanlayıcı</string>
+    <string name="goal_label">Hedef: %1$s</string>
+    <string name="percent_done">%%%1$d tamamlandı</string>
+    <string name="goal_reached_label">Hedefe ulaşıldı!</string>
+    <string name="time_played_of_goal">%1$s / %2$s</string>
+    <string name="stations_header">Radyo İstasyonları</string>
+    <string name="view_calendar">Takvimi Görüntüle →</string>
+    <string name="streak_label">Seri: %1$d gün</string>
+    <string name="streak_at_risk">Seri: %1$d gün · devam etmek için bugünü tamamla</string>
+    <string name="streak_none">Seriyi bugün başlat</string>
+
+    <!-- Oynatma durumu -->
+    <string name="state_idle">Dinlemeye başlamak için dokun</string>
+    <string name="state_connecting">Bağlanıyor…</string>
+    <string name="state_buffering">Arabelleğe alınıyor…</string>
+    <string name="state_playing">Çalıyor</string>
+    <string name="state_paused">Duraklatıldı</string>
+    <string name="state_interrupted">Başka bir uygulama sesi kullanıyor</string>
+    <string name="error_network">Bağlantı hatası. İnternetinizi kontrol edin.</string>
+    <string name="error_source">Bu istasyon şu an yayın vermiyor.</string>
+    <string name="error_unknown">Çalma hatası oluştu.</string>
+    <string name="error_retry_hint">Tekrar denemek için karta dokunun.</string>
+    <string name="error_with_hint">%1$s %2$s</string>
+    <string name="station_row_error">Hata</string>
+
+    <!-- Aksan etiketleri -->
+    <string name="accent_uk">İngiliz aksanı</string>
+    <string name="accent_us">Amerikan aksanı</string>
+    <string name="accent_ca">Kanada aksanı</string>
+
+    <!-- Bildirim izni (T1) -->
+    <string name="notif_permission_warning">Bildirimler kapalı, oynatma kontrolleri görünmüyor. Açmak için dokun.</string>
+
+    <!-- Uyku zamanlayıcı (B3) -->
+    <string name="sleep_dialog_title">Uyku zamanlayıcı</string>
+    <string name="sleep_option_minutes">%1$d dakika</string>
+    <string name="sleep_cancel">Zamanlayıcıyı kapat</string>
+    <string name="sleep_remaining">Uyku: %1$s</string>
+    <string name="sleep_set_toast">Radyo %1$d dakika sonra kapanacak</string>
+    <string name="sleep_cancelled_toast">Uyku zamanlayıcı kapatıldı</string>
+
+    <!-- ===== Ayarlar ===== -->
+    <string name="settings_title">Hedef Ayarları</string>
+    <string name="settings_goal_header">Günlük Dinleme Hedefi</string>
+    <string name="settings_goal_hint_text">Hedef süreyi saat cinsinden girin (örnek: 4 veya 2,5) ya da hızlı seçimlerden birine dokunun</string>
+    <string name="settings_goal_input_hint">4</string>
+    <string name="settings_save">Kaydet</string>
+    <string name="settings_note">Not: Hedef, günlük toplam dinleme sürenizi belirler. Progress bar ve takvimdeki renklendirme bu hedefe göre yapılır.</string>
+    <string name="settings_error_empty">Lütfen bir hedef girin</string>
+    <string name="settings_error_format">Geçersiz sayı formatı</string>
+    <string name="settings_error_min">Hedef en az 1 dakika olmalıdır</string>
+    <string name="settings_error_max">Hedef 24 saatten fazla olamaz</string>
+    <string name="settings_saved">Hedef kaydedildi: %1$s</string>
+    <string name="chip_15m">15 dk</string>
+    <string name="chip_30m">30 dk</string>
+    <string name="chip_1h">1 sa</string>
+    <string name="chip_2h">2 sa</string>
+    <string name="chip_4h">4 sa</string>
+
+    <!-- ===== Takvim ===== -->
+    <string name="calendar_legend_reached">Tamamlandı</string>
+    <string name="calendar_legend_missed">Tamamlanmadı</string>
+    <string name="calendar_month_total">Aylık toplam: %1$s</string>
+    <string name="calendar_month_subtitle">%1$s ayında toplam dinleme süresi</string>
+    <string name="calendar_day_detail_reached">%1$s: %2$s · hedef tuttu</string>
+    <string name="calendar_day_detail_missed">%1$s: %2$s · hedef tutmadı</string>
+    <string name="calendar_day_detail_today">%1$s: %2$s · devam ediyor</string>
+    <string name="calendar_day_empty">%1$s: kayıt yok</string>
+    <string name="calendar_day_prompt">Ayrıntı için bir güne dokunun</string>
+    <string name="calendar_header">%1$s %2$d</string>
+    <string-array name="calendar_month_names">
+        <item>Ocak</item>
+        <item>Şubat</item>
+        <item>Mart</item>
+        <item>Nisan</item>
+        <item>Mayıs</item>
+        <item>Haziran</item>
+        <item>Temmuz</item>
+        <item>Ağustos</item>
+        <item>Eylül</item>
+        <item>Ekim</item>
+        <item>Kasım</item>
+        <item>Aralık</item>
+    </string-array>
+    <string-array name="calendar_weekdays_short">
+        <item>Pzt</item>
+        <item>Sal</item>
+        <item>Çar</item>
+        <item>Per</item>
+        <item>Cum</item>
+        <item>Cmt</item>
+        <item>Paz</item>
+    </string-array>
+
+    <!-- ===== Erişilebilirlik ===== -->
+    <string name="cd_settings">Ayarlar</string>
+    <string name="cd_play_pause">Oynat / Duraklat</string>
+    <string name="cd_back">Geri</string>
+    <string name="cd_play">Oynat</string>
+    <string name="cd_pause">Duraklat</string>
+    <string name="cd_sleep_timer">Uyku zamanlayıcı</string>
+    <string name="cd_prev_month">Önceki ay</string>
+    <string name="cd_next_month">Sonraki ay</string>
 </resources>

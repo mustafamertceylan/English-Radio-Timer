@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="bg_screen">#121212</color>
+    <color name="bg_card">#1E1E1E</color>
+
+    <color name="text_primary">#EDEDED</color>
+    <color name="text_secondary">#B2BEC3</color>
+    <color name="text_tertiary">#9AA5A8</color>
+
+    <color name="accent">#00B894</color>
+    <color name="accent_tint">#3300B894</color>
+    <color name="on_accent">#FFFFFF</color>
+    <color name="on_accent_secondary">#E0F2F1</color>
+    <color name="progress_track">#B3E0E0E0</color>
+
+    <color name="goal_reached">#00B894</color>
+    <color name="goal_missed">#E17055</color>
+    <color name="error">#E74C3C</color>
+
+    <color name="input_bg">#2A2A2A</color>
+    <color name="input_stroke">#555F63</color>
+
+    <color name="warning_bg">#3D3200</color>
+    <color name="warning_text">#FFE08A</color>
+</resources>
